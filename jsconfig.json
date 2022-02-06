@@ -1,0 +1,17 @@
+{
+    "compilerOptions": {
+            "baseUrl": ".", //root folder
+            "paths": { //alias for your folders
+                "@utils/*":["utils/*"],
+                "@pages/*": ["pages/*"], // /* marks all files in that folder
+                "@components/*":["components/*"],
+                "@styles/*":["styles/*"],
+                
+                
+            }
+
+
+    }
+
+
+}
