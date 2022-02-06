@@ -7,11 +7,18 @@ import { Breadcrumbs, EthStats, Header, Hero } from "@components/UI/common";
 
 export default function Home() {
 
-  const { test } = useWeb3()
+
+
+
+  const { web3, isInitialized, contract } = useWeb3()
+  console.log(web3)
+  
   return (
     <>
 
-      {test}
+      {isInitialized ? "Is initalized" : "Not initialized"} {"/"} {contract != null ? "Contract loaded" : "Contract not loaded"}
+
+      
       <Header />
 
       <Hero />
