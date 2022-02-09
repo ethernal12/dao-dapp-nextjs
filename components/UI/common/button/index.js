@@ -18,7 +18,7 @@ export default function Button({
     return (
         <button
             {...rest}
-
+        
 
             className={`disabled:opacity-50 disabled:cursor-not-allowed px-8 py-3 font-medium rounded-md text-base mr-8${className} ${variants[variant]}`}>
             {/* // children => onClick({connect}) (passed from on click onClick to children) */}
