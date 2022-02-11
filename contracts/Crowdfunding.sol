@@ -54,9 +54,10 @@ contract CrowdFunding {
 
     function getRefund() external payable {
         require(
-            deadline < block.timestamp && raisedAmount < goal,
-            "The campaign deadline has not passed yet, or the funding goal has not been met!"
+            deadline > block.timestamp && raisedAmount < goal,
+            "The campaign raised amount has been reached, cannot refund!"
         );
+   
         require(
             contributors[msg.sender] > 0,
             "You have not contributed to the campaign, cannot refund!"
@@ -64,7 +65,9 @@ contract CrowdFunding {
         address payable recipient = payable(msg.sender);
         uint256 value = contributors[msg.sender];
         contributors[msg.sender] = 0;
-        recipient.transfer(value);
+
+        (bool success, ) = recipient.call{value: value}("");
+        require(success, "Transfer to owner of the course failed");
     }
 
     function spendingRequest(
@@ -105,11 +108,10 @@ contract CrowdFunding {
         return voted[_voter];
     }
 
-    function votedForSpendingRequest(uint _id)external view returns (bool){
+    function votedForSpendingRequest(uint256 _id) external view returns (bool) {
         Request storage r = spendingRequests[_id];
 
         return r.voters[msg.sender];
-
     }
 
     function deadline_() external view returns (bool) {
@@ -126,13 +128,30 @@ contract CrowdFunding {
         return address(this).balance;
     }
 
-      function getSpendingRequest(uint _id) public view returns(uint, string memory, string memory, uint, address, uint, bool){
-        
+    function getSpendingRequest(uint256 _id)
+        public
+        view
+        returns (
+            uint256,
+            string memory,
+            string memory,
+            uint256,
+            address,
+            uint256,
+            bool
+        )
+    {
         Request storage r = spendingRequests[_id];
-        
-        return(r.id, r.title, r.description, r.value, r.recipient, r.noOfVOters, r.completed);
 
-
+        return (
+            r.id,
+            r.title,
+            r.description,
+            r.value,
+            r.recipient,
+            r.noOfVOters,
+            r.completed
+        );
     }
 
     function raisedAmount_() external view returns (bool) {
@@ -171,7 +190,9 @@ contract CrowdFunding {
         );
         Request storage request = spendingRequests[_id];
         request.completed = true;
-        request.recipient.transfer(request.value);
+
+        (bool success, ) = request.recipient.call{value: request.value}("");
+        require(success, "Transfer to owner of the course failed");
     }
 
     function completedRequests(uint256 _id) external returns (bool) {

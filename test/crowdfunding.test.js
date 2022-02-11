@@ -11,11 +11,12 @@ const CF = artifacts.require('CrowdFunding')
 contract("voting DApp", accounts => {
     const [admin, voter1, voter2, voter3, recipient] = [accounts[0], accounts[1], accounts[2], accounts[3], accounts[4]];
     const [spendingRequest1, spendingRequest2] = [0, 1]
+    const voters = [accounts[1], accounts[2], accounts[3]]
+
 
     //-----------------------helper functions----------------------------
     const toBN = value => web3.utils.toBN(value)
-    const getBalance = async address => web3.eth.getBalance(address)
-    const fromWei = value => web3.utils.fromWei(value, "ether")
+    const toWei = value => toBN(web3.utils.toWei(value, "ether"))
 
 
     const getGas = async result => {
@@ -28,13 +29,24 @@ contract("voting DApp", accounts => {
 
         return gas
     }
+
+    const getBalance = async address => web3.eth.getBalance(address)
+
+    const getBalances = async addresses => {
+
+        const getBalances = await Promise.all(addresses.map(address =>
+            web3.eth.getBalance(address)
+        ))
+        return getBalances.map(balance => toBN(balance))
+    }
+
     //-----------------------/helper functions----------------------------
 
 
     //-----------------------constructor parameters-----------------------
     const deadline = 1000;              // 1000 sec.
-    const goal = "300000000000000000"   // 0,3 ETH
-    const minCon = "100000000000000000" // 0,1 ETH
+    const goal = toWei("0.3")
+    const minCon = toWei("0.1")
     //-----------------------/constructor parameters-----------------------
 
 
@@ -44,12 +56,12 @@ contract("voting DApp", accounts => {
 
     let cf = null
     let cf2 = null
-    let raisedAmount = ""
-    let minContribution = ""
+
 
     before(async () => {
-        cf = await CF.deployed()
-        minContribution = await cf.minContribution()
+
+        cf = await CF.new(deadline, goal, minCon)
+
 
     })
 
@@ -61,9 +73,8 @@ contract("voting DApp", accounts => {
 
         it("can contribute if < minimum contribution", async () => {
 
-            // const minContribution = await cf.minContribution()
 
-            const underMinCon = toBN(minContribution).sub(toBN("10000"))
+            const underMinCon = toBN(minCon).sub(toBN("10000"))
             await expectRevert(cf.contribute({ from: voter1, value: underMinCon }),
                 "Minimum contribution not met!"
 
@@ -72,37 +83,57 @@ contract("voting DApp", accounts => {
         })
 
         it("can contribute", async () => {
-            const minContribution = await cf.minContribution()
-
-            let balanceBefore1 = await getBalance(voter1);
-            let balanceBefore2 = await getBalance(voter2);
-            let balanceBefore3 = await getBalance(voter3);
-
-            const tx1 = await cf.contribute({ from: voter1, value: minContribution })
-            const tx2 = await cf.contribute({ from: voter2, value: minContribution })
-            const tx3 = await cf.contribute({ from: voter3, value: minContribution })
-
-            const gasUsedtx1 = await getGas(tx1)
-            const gasUsedtx2 = await getGas(tx2)
-            const gasUsedtx3 = await getGas(tx3)
-
-            let balanceAfter1 = await getBalance(voter1);
-            let balanceAfter2 = await getBalance(voter2);
-            let balanceAfter3 = await getBalance(voter3);
-
-            const conValue1 = await cf.contributors(voter1);
-            const conValue2 = await cf.contributors(voter2);
-            const conValue3 = await cf.contributors(voter3);
 
 
-            assert.equal(toBN(balanceBefore1).sub(toBN(minContribution)).sub(gasUsedtx1).toString(), balanceAfter1)
-            assert.equal(toBN(balanceBefore2).sub(toBN(minContribution)).sub(gasUsedtx2).toString(), balanceAfter2)
-            assert.equal(toBN(balanceBefore3).sub(toBN(minContribution)).sub(gasUsedtx3).toString(), balanceAfter3)
 
-            //contributors value from mapping
-            assert.equal(conValue1.toString(), minContribution)
-            assert.equal(conValue2.toString(), minContribution)
-            assert.equal(conValue3.toString(), minContribution)
+            const balancesBefore = await getBalances(voters)
+
+            const txs = await Promise.all(voters.map(voter =>
+                cf.contribute({
+                    from: voter,
+                    value: minCon
+                }),
+
+            ))
+
+            let gasUsed = []
+            for (let i = 0; i < txs.length; i++) {
+                gasUsed.push(await getGas(txs[i]))
+            }
+
+
+            const balancesAfter = await getBalances(voters)
+
+            const conValue1 = await cf.contributors(voter1)
+            const conValue2 = await cf.contributors(voter2)
+            const conValue3 = await cf.contributors(voter3)
+
+
+            // const result = voters.some((_voter, i) => {
+            //    console.log(i)
+            //     return balancesBefore[i].sub(toBN(minCon)).sub(gasUsed[i]).eq(balancesAfter[i]) 
+
+            // })
+
+            let j = 0
+            for (let i = 0; i < voters.length; i++) {
+
+                if (
+                    balancesBefore[i].sub(toBN(minCon)).sub(gasUsed[i]).eq(balancesAfter[i])) {
+                    j++
+
+                } else {
+                    break
+                }
+
+            }
+
+            assert.equal(j, voters.length)
+            assert.equal(conValue1.toString(), minCon)
+            assert.equal(conValue2.toString(), minCon)
+            assert.equal(conValue3.toString(), minCon)
+
+
 
         })
 
@@ -116,7 +147,7 @@ contract("voting DApp", accounts => {
 
         it("only admin can create new spending request", async () => {
             await expectRevert(
-                cf.spendingRequest(title, description, recipient, minContribution, { from: voter1 }),
+                cf.spendingRequest(title, description, recipient, minCon, { from: voter1 }),
                 "Only admin!"
             )
 
@@ -134,14 +165,14 @@ contract("voting DApp", accounts => {
 
         })
         it("create spending request", async () => {
-            await cf.spendingRequest(title, description, recipient, minContribution, { from: admin })
+            await cf.spendingRequest(title, description, recipient, minCon, { from: admin })
 
             const getSpendingRequest = await cf.getSpendingRequest(0)
 
 
             assert.equal(getSpendingRequest[1], description, "Spending request descriptions do NOT match");
             assert.equal(getSpendingRequest[2], title, "Spending request titles do NOT match");
-            assert.equal(getSpendingRequest[3].toString(), minContribution, "Spending request minimum contributions do NOT match");
+            assert.equal(getSpendingRequest[3].toString(), minCon, "Spending request minimum contributions do NOT match");
             assert.equal(getSpendingRequest[4].toString(), recipient, "Spending request recipient addresses do NOT match");
             assert.equal(getSpendingRequest[5].toString(), 0, "Spending request votes should be 0 ");
             assert.equal(getSpendingRequest[6], false, "Spending request should not be completed yet");
@@ -161,9 +192,14 @@ contract("voting DApp", accounts => {
         })
 
         it("can vote", async () => {
-            await cf.vote(spendingRequest1, { from: voter1 });
-            await cf.vote(spendingRequest1, { from: voter2 });
-            await cf.vote(spendingRequest1, { from: voter3 });
+
+
+            await Promise.all(voters.map(voter =>
+                cf.vote(spendingRequest1, {
+                    from: voter,
+                }),
+
+            ))
 
             const vote1 = await cf.votedForSpendingRequest(spendingRequest1, { from: voter1 })
             const vote2 = await cf.votedForSpendingRequest(spendingRequest1, { from: voter2 })
@@ -176,7 +212,7 @@ contract("voting DApp", accounts => {
         })
 
         it("can only vote once", async () => {
-            await expectRevert(cf.vote(0, { from: voter1 }),
+            await expectRevert(cf.vote(spendingRequest1, { from: voter1 }),
                 "You have allready voted for this spending request!"
 
 
@@ -190,21 +226,37 @@ contract("voting DApp", accounts => {
     describe("transfer funds", () => {
 
         before(async () => {
-            cf2 = await CF.deployed()
-            cf2.spendingRequest(title, description, recipient, minContribution, { from: admin })
+            //create new contract
+            cf2 = await CF.new(deadline, goal, minCon)
 
 
-            const tx1 = await cf2.contribute({ from: voter1, value: minContribution })
-            const tx2 = await cf2.contribute({ from: voter2, value: minContribution })
-            const tx3 = await cf2.contribute({ from: voter3, value: minContribution })
+            //contribute to contract
+            await Promise.all(voters.map(voter =>
+                cf2.contribute({
+                    from: voter,
+                    value: minCon
+                }),
 
-            const vote1 = await cf2.votedForSpendingRequest(spendingRequest2, { from: voter1 })
+            ))
+
+            //create new spending proposal
+            cf2.spendingRequest(title, description, recipient, minCon, { from: admin })
+
+            //vote for that proposal
+            await Promise.all(voters.map(voter =>
+                cf2.vote(spendingRequest1, {
+                    from: voter,
+                }),
+
+            ))
+
+
 
         })
         it("only admin can transfer request funds", async () => {
 
             await expectRevert(
-                cf2.transferRequestFunds(spendingRequest2, { from: voter1 }),
+                cf2.transferRequestFunds(spendingRequest1, { from: voter1 }),
                 "Only admin!"
 
             )
@@ -212,7 +264,8 @@ contract("voting DApp", accounts => {
         })
 
         it("can transfer funds only if spending request has > 1/2 votes from contributors", async () => {
-            cf2.spendingRequest(title, description, recipient, minContribution, { from: admin })
+            //create new spending request with no votes
+            await cf2.spendingRequest(title, description, recipient, minCon, { from: admin })
 
             await expectRevert(
                 cf2.transferRequestFunds(spendingRequest2, { from: admin }),
@@ -223,10 +276,8 @@ contract("voting DApp", accounts => {
         })
         it("cannot contribute if contribution deadline has expired", async () => {
             await time.increase(1001);
-            const minContribution = await cf2.minContribution()
 
-
-            await expectRevert(cf2.contribute({ from: voter1, value: minContribution }),
+            await expectRevert(cf2.contribute({ from: voter1, value: minCon }),
                 "The campaign contribution deadline ended!"
 
             )
@@ -234,23 +285,66 @@ contract("voting DApp", accounts => {
         })
 
         it(" can transfer request funds", async () => {
-            const getSpendingRequest = await cf.getSpendingRequest(spendingRequest1)
+            // get the value that recipient has to recieve
+            const getSpendingRequest = await cf2.getSpendingRequest(spendingRequest1)
             const spendingRequestValue = getSpendingRequest[3]
+            
 
 
-            let recipientBalanceBefore = await getBalance(recipient)
+            const recipientBalanceBefore = await getBalance(recipient)
 
-
-            const result = await cf.transferRequestFunds(spendingRequest1, { from: admin })
-            const gas = await getGas(result)
-          
-
-
-            let recipientBalanceAfter = await getBalance(recipient)
-
+            await cf2.transferRequestFunds(spendingRequest1, { from: admin })
+            const recipientBalanceAfter = await getBalance(recipient)
 
             assert.equal(toBN(recipientBalanceBefore).add(toBN(spendingRequestValue)).toString(), recipientBalanceAfter)
         })
+
+
+    })
+
+    describe("Cannot get refund", () => {
+
+        before(async () => {
+            //create new contract
+            cf2 = await CF.new(deadline, goal, minCon)
+
+
+            //contribute to contract
+            await Promise.all(voters.map(voter =>
+                cf2.contribute({
+                    from: voter,
+                    value: minCon
+                }),
+
+            ))
+
+            //create new spending proposal
+            cf2.spendingRequest(title, description, recipient, minCon, { from: admin })
+
+            //vote for that proposal
+            await Promise.all(voters.map(voter =>
+                cf2.vote(spendingRequest1, {
+                    from: voter,
+                }),
+
+            ))
+
+
+
+        })
+
+
+        it(" should not get a refund it campaign raised amount has been reached", async () => {
+            await time.increase(1001);
+
+            await expectRevert( cf2.getRefund({from:voter1}),
+            "The campaign raised amount has been reached, cannot refund!"
+            
+            )
+
+
+        })
+
 
 
     })
