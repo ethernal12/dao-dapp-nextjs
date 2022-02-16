@@ -1,3 +1,18 @@
+Decentralized autonomous organization(DAO) - Dapp (on ropsten testnet)
+
+
+- Admin deployes the contract with deadline, funding goal and minimun contribution parameters. At creation of the contract the Admin receives 1/3 of the token supply to their account.
+- Everybody can contribute to the crowdfunding contract as long as the dadline date has not passed. If the funding goal has not been reached as the deadline date expires,  - - -      contributors can ask for a full refund.
+- After contributing to the contract, contributor will receive DAOT tokens to their account.  
+- Admin can create spending request proposals at any time.
+- Only contributors who have DAOT in their account can vote for proposals, their vote weight is proportional to the amount of tokens they own.
+- Owner can finalize the proposals if it has sufficient #votes(> 1/2) and the goal funding goal has been reached.
+- Once proposalis finalized the requested funds for proposal are transfered to spending request receiving address.
+
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+
 This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
 
 ## Getting Started
@@ -22,13 +37,3 @@ The `pages/api` directory is mapped to `/api/*`. Files in this directory are tre
 
 To learn more about Next.js, take a look at the following resources:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
