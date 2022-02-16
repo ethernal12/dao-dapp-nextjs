@@ -7,7 +7,7 @@
 - Admin can create spending request proposals at any time.
 - Only contributors who have DAOT in their account can vote for proposals, their vote weight is proportional to the amount of tokens they hold.
 - Admin can finalize the proposals if it has sufficient #votes(> 1/2) and the funding goal has been reached.
-- Once proposalis finalized the requested funds for proposal are transfered to spending request receiving address.
+- Once proposal is finalized the requested funds for proposal are transfered to spending request receiving address.
 
 -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
