@@ -2,7 +2,7 @@
 require('dotenv').config()
 
 const HDWalletProvider = require("@truffle/hdwallet-provider");
-//const web3  = require('web3');
+const web3  = require('web3');
 
 module.exports = {
 
@@ -22,7 +22,7 @@ module.exports = {
           },
       network_id: 3,
       gas: 4000000,
-      gasPrice:20000000000 ,//web3.utils.toWei("10", "Gwei"),
+      gasPrice: web3.utils.toWei("20", "Gwei"),
       skipDryRun: true,
       from:"",
       timeoutblocks: 200,
