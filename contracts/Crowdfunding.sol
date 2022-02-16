@@ -56,12 +56,10 @@ contract CrowdFunding {
         tokenTransferAmount = msg.value / 10**11;
         contributors[msg.sender] += msg.value;
         raisedAmount += msg.value;
-        // 1 token = 0,00000001 % of total supply
-        // 100 tokens = 0,000001 % of total supply
+ 
 
         // 100000000000000 wei = 0,00001 eth/0,03USD  = 1000 TOKEN
-        // 200000000000000 wei = 0,00002 eth/0,06USD  = 2000 TOKEN
-        // 11000000000000000 wei = 0,01 eth/30USD = 110000 TOKENs
+      
 
         totalDestributedTokens += msg.value / 10**11;
 
