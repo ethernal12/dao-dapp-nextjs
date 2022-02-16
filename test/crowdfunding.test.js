@@ -1,5 +1,6 @@
 //const web3 = require('web3');
 const { assert } = require("chai");
+
 const { expectRevert, time } = require('@openzeppelin/test-helpers');
 const { web3 } = require("@openzeppelin/test-helpers/src/setup");
 
@@ -9,14 +10,16 @@ const CF = artifacts.require('CrowdFunding')
 
 
 contract("voting DApp", accounts => {
-    const [admin, voter1, voter2, voter3, recipient] = [accounts[0], accounts[1], accounts[2], accounts[3], accounts[4]];
+    const [admin, voter1, voter2, voter3, recipient, admin2] = [accounts[0], accounts[1], accounts[2], accounts[3], accounts[4], accounts[5]];
     const [spendingRequest1, spendingRequest2] = [0, 1]
     const voters = [accounts[1], accounts[2], accounts[3]]
+
 
 
     //-----------------------helper functions----------------------------
     const toBN = value => web3.utils.toBN(value)
     const toWei = value => toBN(web3.utils.toWei(value, "ether"))
+
 
 
     const getGas = async result => {
@@ -38,6 +41,15 @@ contract("voting DApp", accounts => {
             web3.eth.getBalance(address)
         ))
         return getBalances.map(balance => toBN(balance))
+    }
+
+    const getTokenBalances = async addresses => {
+        const getTokens = await Promise.all(addresses.map(address =>
+            cf.balanceOfDaotAddr(address)
+        ))
+        return getTokens.map(balance => toBN(balance))
+
+
     }
 
     //-----------------------/helper functions----------------------------
@@ -65,13 +77,38 @@ contract("voting DApp", accounts => {
 
     })
 
+    describe("Check minted token balances", () => {
+
+        it("owner should have 2/3 of minted tokens", async () => {
+            const totalTokenSupply = await cf.totalSupply()
+            const tokenContractAddress = await cf.tokenHolderAddress()
+            const tokenContractBalance = await cf.balanceOfDaotAddr(tokenContractAddress)
 
 
-    describe("contribute", () => {
+
+            assert.equal(Math.trunc(toBN(totalTokenSupply) * 2 / 3), toBN(tokenContractBalance).toString(), "Token balance of contract owner do not match")
+
+
+        })
+
+        it("admin should have 1/3 of minted tokens", async () => {
+            const totalTokenSupply = await cf.totalSupply()
+            const adminTokenBalance = await cf.balanceOfDaotAddr(admin)
 
 
 
-        it("can contribute if < minimum contribution", async () => {
+            assert.equal(Math.trunc(toBN(totalTokenSupply) * 1 / 3), toBN(adminTokenBalance).toString(), "Token balance of admin do not match")
+
+
+        })
+
+    })
+
+    describe("Contribute", () => {
+
+
+
+        it("can contribute if >= minimum contribution", async () => {
 
 
             const underMinCon = toBN(minCon).sub(toBN("10000"))
@@ -84,7 +121,7 @@ contract("voting DApp", accounts => {
 
         it("can contribute", async () => {
 
-
+            const totalTokenSupply = await cf.totalSupply()
 
             const balancesBefore = await getBalances(voters)
 
@@ -95,6 +132,10 @@ contract("voting DApp", accounts => {
                 }),
 
             ))
+
+            const tokenBalanceAfterCon = await getTokenBalances(voters);
+
+
 
             let gasUsed = []
             for (let i = 0; i < txs.length; i++) {
@@ -128,6 +169,17 @@ contract("voting DApp", accounts => {
 
             }
 
+           
+            // assert.equal(tokenBalanceAfterCon.map(tokenBalance =>
+
+            //     (tokenBalance.toString(), Math.round((toWei(minCon).toString() / 10 ** 28)), "error")
+
+            // ))
+            for (let i = 0; i < tokenBalanceAfterCon.length; i++) {
+                assert.equal(tokenBalanceAfterCon[i].toString(), (Math.round((toWei(minCon).toString() / 10 ** 29))).toString()) // 10**18 to get rid of the decimals + 10**11 to convert to tokens price from wei
+
+
+            }
             assert.equal(j, voters.length)
             assert.equal(conValue1.toString(), minCon)
             assert.equal(conValue2.toString(), minCon)
@@ -141,7 +193,7 @@ contract("voting DApp", accounts => {
 
 
     })
-    describe("create spending request", () => {
+    describe("Create spending request", () => {
 
 
 
@@ -181,11 +233,16 @@ contract("voting DApp", accounts => {
 
     })
 
-    describe("spending request voting", () => {
-        it("only contributors can vote for spending request", async () => {
+    describe("Spending request voting", () => {
+
+
+        
+
+        
+        it("only token holders can vote for spending request", async () => {
             await expectRevert(
                 cf.vote(spendingRequest1, { from: recipient }),
-                "No right to vote!"
+                "Your address does NOT have any tokens, no voting rights!"
 
             )
 
@@ -193,7 +250,8 @@ contract("voting DApp", accounts => {
 
         it("can vote", async () => {
 
-
+         
+            
             await Promise.all(voters.map(voter =>
                 cf.vote(spendingRequest1, {
                     from: voter,
@@ -219,11 +277,23 @@ contract("voting DApp", accounts => {
             )
 
         })
+        it("can only vote if spending request is not completed", async () => {
+            
+            await cf.transferRequestFunds(spendingRequest1, {from:admin})
+            await cf.contribute({from:recipient, value:minCon})
+
+            await expectRevert(cf.vote(spendingRequest1, { from: recipient }),
+                "Cannot vote, spending request completed!"
+
+            )
+
+        })
+        
 
 
     })
 
-    describe("transfer funds", () => {
+    describe("Transfer funds", () => {
 
         before(async () => {
             //create new contract
@@ -284,11 +354,11 @@ contract("voting DApp", accounts => {
 
         })
 
-        it(" can transfer request funds", async () => {
+        it("can transfer request funds", async () => {
             // get the value that recipient has to recieve
             const getSpendingRequest = await cf2.getSpendingRequest(spendingRequest1)
             const spendingRequestValue = getSpendingRequest[3]
-            
+
 
 
             const recipientBalanceBefore = await getBalance(recipient)
@@ -335,12 +405,53 @@ contract("voting DApp", accounts => {
 
 
         it(" should not get a refund it campaign raised amount has been reached", async () => {
-            await time.increase(1001);
+            await time.increase(1001)
 
-            await expectRevert( cf2.getRefund({from:voter1}),
-            "The campaign raised amount has been reached, cannot refund!"
-            
+            await expectRevert(cf2.getRefund({ from: voter1 }),
+                "The campaign raised amount has been reached, cannot refund!"
+
             )
+
+
+        })
+
+
+
+
+
+    })
+
+    describe("Can get a refund", () => {
+
+        before(async () => {
+            //create new contract
+            cf2 = await CF.new(deadline, goal, minCon)
+
+
+            //contribute to contract
+            await cf2.contribute({ from: voter1, value: minCon })
+
+
+
+        })
+
+
+        it("should get a refund ", async () => {
+            await time.increase(1001)
+
+            const balancesBefore = await getBalance(voter1)
+
+
+            const tx = await cf2.getRefund({ from: voter1 })
+
+            const gasUsed = await getGas(tx)
+
+            const balancesAfter = await getBalance(voter1)
+
+
+            assert.equal(toBN(balancesBefore).add(toBN(minCon)).sub(gasUsed).toString(), balancesAfter, "After refund the balances do not match!")
+
+
 
 
         })
@@ -349,9 +460,35 @@ contract("voting DApp", accounts => {
 
     })
 
+    describe("Transfer adminship", () => {
+
+        before(async () => {
+            //create new contract
+            cf2 = await CF.new(deadline, goal, minCon)
 
 
 
+        })
 
+        it("only admin should transfer ownership ", async () => {
+            await expectRevert(cf2.transferOwnership(admin2, { from: voter1 }),
+                "Only admin!"
+            )
+
+
+
+        })
+
+        it("should transfer ownership ", async () => {
+            await cf2.transferOwnership(admin2, { from: admin })
+
+            const newadmin = await cf2.admin()
+
+            assert.equal(newadmin, admin2, "admin trasnfer not successful!")
+
+        })
+
+
+    })
 
 })

@@ -21,7 +21,7 @@ module.exports = {
           return new HDWalletProvider(process.env.MNEMONIC, "https://ropsten.infura.io/v3/" + process.env.INFURAROP )
           },
       network_id: 3,
-      gas: 3000000,
+      gas: 4000000,
       gasPrice:20000000000 ,//web3.utils.toWei("10", "Gwei"),
       skipDryRun: true,
       from:"",

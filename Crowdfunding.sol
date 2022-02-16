@@ -1,21 +1,18 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.7;
 
+pragma solidity 0.8.7;
 pragma experimental ABIEncoderV2;
+
 import "./DAOT.sol";
 
 contract CrowdFunding {
-    address public admin;
+    address public owner;
     uint256 public noOfContributors;
     uint256 public goal;
     uint256 public deadline;
     uint256 public minContribution;
     uint256 public raisedAmount;
     uint256 public id;
-    uint256 public totalDestributedTokens;
-    uint256 public tokenTransferAmount;
-
-    DAOT daot = new DAOT(100000000, msg.sender);
 
     struct Request {
         uint256 id;
@@ -24,14 +21,13 @@ contract CrowdFunding {
         uint256 value;
         address payable recipient;
         bool completed;
-        uint256 noOfVotes;
+        uint256 noOfVOters;
         mapping(address => bool) voters;
     }
 
     mapping(address => uint256) public contributors;
     mapping(uint256 => Request) public spendingRequests;
     mapping(address => bool) public voted;
-    mapping(address => uint256) public contributorsVoteWeight;
 
     constructor(
         uint256 _deadline,
@@ -41,7 +37,7 @@ contract CrowdFunding {
         minContribution = _minContribution;
         deadline = block.timestamp + _deadline;
         goal = _goal;
-        admin = msg.sender;
+        owner = msg.sender;
     }
 
     function contribute() external payable {
@@ -53,24 +49,13 @@ contract CrowdFunding {
         if (contributors[msg.sender] == 0) {
             noOfContributors++;
         }
-        tokenTransferAmount = msg.value / 10**11;
+
+        //transfer equivalent amount of of tokens /  contribution value to contributor
+        // 0.1 eth is equal to 1000 DAOT
+        uint256 amount = (msg.value * 10000);
+        DAOT.transfer(msg.sender, amount);
         contributors[msg.sender] += msg.value;
         raisedAmount += msg.value;
-        // 1 token = 0,00000001 % of total supply
-        // 100 tokens = 0,000001 % of total supply
-
-        // 100000000000000 wei = 0,00001 eth/0,03USD  = 1000 TOKEN
-        // 200000000000000 wei = 0,00002 eth/0,06USD  = 2000 TOKEN
-        // 11000000000000000 wei = 0,01 eth/30USD = 110000 TOKENs
-
-        totalDestributedTokens += msg.value / 10**11;
-
-        daot.approve(msg.sender, tokenTransferAmount);
-        _transferTokens(tokenTransferAmount);
-    }
-
-    function _transferTokens(uint256 _amount) private {
-        daot.transferFrom(address(daot), msg.sender, _amount);
     }
 
     function getRefund() external payable {
@@ -98,7 +83,7 @@ contract CrowdFunding {
         uint256 _value
     ) external onlyOwner {
         require(
-            raisedAmount >= _value,
+            raisedAmount > _value,
             "Not enough funds raised for this requested proposal!"
         );
 
@@ -108,80 +93,21 @@ contract CrowdFunding {
         newRequest.title = _title;
         newRequest.recipient = _recipient;
         newRequest.value = _value;
-        newRequest.noOfVotes = 0;
+        newRequest.noOfVOters = 0;
 
         id++;
     }
 
-    function vote(uint256 _id) external tokenOwnerRights {
+    function vote(uint256 _id) external contributorRights {
         Request storage request = spendingRequests[_id];
-        require(msg.sender != admin, "Admin cannot cast a vote! ");
+        require(msg.sender != owner, "Owner cannot cast a vote! ");
         require(
             request.voters[msg.sender] == false,
             "You have allready voted for this spending request!"
         );
-        require(request.completed != true ,"Cannot vote, spending request completed!");
-
-        uint256 voteWeight = _balanceOfDaotAddr(msg.sender);
-        request.noOfVotes += voteWeight;
-
         request.voters[msg.sender] = true;
-
+        request.noOfVOters += 1;
         voted[msg.sender] = true;
-    }
-
-    function transferRequestFunds(uint256 _id)
-        external
-        payable
-        onlyOwner
-        requestApproved(_id)
-    {
-        require(
-            raisedAmount >= goal,
-            "The funding funds goal has not been reached!"
-        );
-        Request storage request = spendingRequests[_id];
-        request.completed = true;
-
-        (bool success, ) = request.recipient.call{value: request.value}("");
-        require(success, "Transfer to owner of the course failed");
-    }
-
-    function transferOwnership(address _newAdmin) external onlyOwner {
-        admin = _newAdmin;
-    }
-
-    //---------------------------------------------helper functions------------------------------------
-
-    function tokenHolderAddress() public view returns(address){
-
-
-        return address(daot);
-    }
-    
-    
-    function totalSupply() public view returns (uint256) {
-        return daot.totalSupply() / 10**18;
-    }
-
-    function _balanceOfDaotAddr(address _account)
-        private
-        view
-        returns (uint256)
-    {
-        return daot.balanceOf(_account) / 10**18;
-    }
-
-    function balanceOfDaotAddr(address _account) public view returns (uint256) {
-        return daot.balanceOf(_account) / 10**18;
-    }
-
-    function allowance(address _owner, address _spender)
-        public
-        view
-        returns (uint256)
-    {
-        return daot.allowance(_owner, _spender);
     }
 
     function hasVoted(address _voter) external view returns (bool) {
@@ -202,6 +128,10 @@ contract CrowdFunding {
         }
 
         return isDeadline;
+    }
+
+    function getContractBalance() external view returns (uint256) {
+        return address(this).balance;
     }
 
     function getSpendingRequest(uint256 _id)
@@ -225,7 +155,7 @@ contract CrowdFunding {
             r.description,
             r.value,
             r.recipient,
-            r.noOfVotes,
+            r.noOfVOters,
             r.completed
         );
     }
@@ -241,49 +171,62 @@ contract CrowdFunding {
     }
 
     function noOfVoters_(uint256 _id) external view returns (bool) {
-        bool enoughVotes = false;
+        bool enoughVoters = false;
         Request storage request = spendingRequests[_id];
-        if (request.noOfVotes > totalDestributedTokens / 2) {
-            enoughVotes = true;
+        if (request.noOfVOters > noOfContributors / 2) {
+            enoughVoters = true;
         }
 
-        return enoughVotes;
+        return enoughVoters;
     }
 
     function goal_() external view returns (uint256) {
         return goal;
     }
 
-    function getTotalDistrubitedTokens() public view returns (uint256) {
-        return totalDestributedTokens;
+    function transferRequestFunds(uint256 _id)
+        external
+        payable
+        onlyOwner
+        requestApproved(_id)
+    {
+        require(
+            raisedAmount >= goal,
+            "The funding funds goal has not been reached!"
+        );
+        Request storage request = spendingRequests[_id];
+        request.completed = true;
+
+        (bool success, ) = request.recipient.call{value: request.value}("");
+        require(success, "Transfer to owner of the course failed");
     }
 
-    function completedRequests(uint256 _id) external view returns (bool) {
+    function transferOwnership(address _newOwer) external onlyOwner {
+        owner = _newOwer;
+    }
+
+    function completedRequests(uint256 _id) external returns (bool) {
         Request storage request = spendingRequests[_id];
 
         return (request.completed);
     }
 
-    //-----------------------modifiers------------------------------------------------------
     modifier requestApproved(uint256 _id) {
         Request storage request = spendingRequests[_id];
         require(
-            request.noOfVotes > totalDestributedTokens / 2,
+            request.noOfVOters > noOfContributors / 2,
             "The request has not received more than half of votes!"
         );
         _;
     }
 
-    modifier tokenOwnerRights() {
-        require(
-            balanceOfDaotAddr(msg.sender) > 0,
-            "Your address does NOT have any tokens, no voting rights!"
-        );
+    modifier contributorRights() {
+        require(contributors[msg.sender] > 0, "No right to vote!");
         _;
     }
 
     modifier onlyOwner() {
-        require(msg.sender == admin, "Only admin!");
+        require(msg.sender == owner, "Only owner!");
         _;
     }
 }
