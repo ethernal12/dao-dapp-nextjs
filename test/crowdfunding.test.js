@@ -484,7 +484,7 @@ contract("voting DApp", accounts => {
 
             const newadmin = await cf2.admin()
 
-            assert.equal(newadmin, admin2, "admin trasnfer not successful!")
+            assert.equal(newadmin, admin2, "admin transfer not successful!")
 
         })
 
