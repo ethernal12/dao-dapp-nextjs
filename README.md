@@ -2,7 +2,7 @@
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 - Admin deployes the contract with deadline, funding goal and minimun contribution parameters. At creation of the contract the Admin receives 1/3 of the token supply to their account.
-- Everybody can contribute to the crowdfunding contract as long as the dadline date has not passed. If the funding goal has not been reached as the deadline date expires,  - - -      contributors can ask for a full refund.
+- Everybody can contribute to the crowdfunding contract as long as the dadline date has not passed. If the funding goal has not been reached as the deadline date expires,      contributors can ask for a full refund.
 - After contributing to the contract, contributor will receive DAOT tokens to their account.  
 - Admin can create spending request proposals at any time.
 - Only contributors who have DAOT in their account can vote for proposals, their vote weight is proportional to the amount of tokens they own.
