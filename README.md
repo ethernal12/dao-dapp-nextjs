@@ -1,4 +1,4 @@
-                                                 Decentralized autonomous organization (DAO) - Dapp 
+                                   Decentralized autonomous organization (DAO) - Dapp 
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 - Admin deployes the contract with deadline, funding goal and minimun contribution parameters. At creation of the contract the Admin receives 1/3 of the token supply to their account.
