@@ -1,4 +1,4 @@
-export default function Footer() {
+export default function Hero() {
     return (
 
         <section className="lg:2/6 text-left my-28">

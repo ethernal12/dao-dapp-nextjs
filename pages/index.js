@@ -18,13 +18,7 @@ export default function Home() {
       {isLoading ? "Is loading web3..." : web3 ? "Web3 loaded" : "Please install metamask"} {"/"} {contract != null ? "Contract loaded" : "Contract not loaded"}
 
 
-      <Header
-        network={network.data}
-        account={account.data}
-        isSupported = {network.isSupported}
-        targetNetwork = {network.targetNetwork}
-        contract = {contract}
-      />
+      
 
       <Hero />
 

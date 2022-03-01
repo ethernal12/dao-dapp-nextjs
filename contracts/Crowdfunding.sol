@@ -44,7 +44,7 @@ contract CrowdFunding {
         admin = msg.sender;
     }
 
-    function contribute() external payable {
+    function contribute()  external payable {
         require(
             deadline > block.timestamp,
             " The campaign contribution deadline ended!"
@@ -94,7 +94,7 @@ contract CrowdFunding {
         string memory _description,
         address payable _recipient,
         uint256 _value
-    ) external onlyOwner {
+    ) external onlyAdmin {
         require(
             raisedAmount >= _value,
             "Not enough funds raised for this requested proposal!"
@@ -131,7 +131,7 @@ contract CrowdFunding {
     function transferRequestFunds(uint256 _id)
         external
         payable
-        onlyOwner
+        onlyAdmin
         requestApproved(_id)
     {
         require(
@@ -145,7 +145,7 @@ contract CrowdFunding {
         require(success, "Transfer to owner of the course failed");
     }
 
-    function transferOwnership(address _newAdmin) external onlyOwner {
+    function transferOwnership(address _newAdmin) external onlyAdmin {
         admin = _newAdmin;
     }
 
@@ -280,7 +280,7 @@ contract CrowdFunding {
         _;
     }
 
-    modifier onlyOwner() {
+    modifier onlyAdmin() {
         require(msg.sender == admin, "Only admin!");
         _;
     }

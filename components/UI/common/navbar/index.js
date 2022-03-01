@@ -1,4 +1,5 @@
 import Link from "next/link";
+import ActiveLink from "../link";
 import { Button } from "@components/UI/common";
 import { useWeb3 } from "@components/providers";
 
@@ -6,88 +7,93 @@ import { useWeb3 } from "@components/providers";
 
 export default function Navbar() {
     const { connect, isWeb3Loaded, isLoading, hooks } = useWeb3()
-
-    const {account} = hooks.useAccount()
+    const { account } = hooks.useAccount()
+  
     
+
+ 
+
     return (
 
-        
+
         <section>
-            <div className="relative pt-6 px-4 sm:px-6 lg:px-8">
+            <div className="relative pt-6 px-4 sm:px-6 lg:px-8 bg-gray-500">
                 <nav className="relative" aria-label="Global">
                     <div className="flex justify-between items-center">
                         <div>
-                        
-                            <Link href="#" >
-                                <a className="font-medium mr-8 text-gray-500 hover:text-yellow-500">Accounts and contracts info</a>
 
-                            </Link>
-                            <Link href="#" >
-                                <a className="font-medium mr-8 text-gray-500 hover:text-yellow-500">Funding request</a>
-                            </Link>
+                            <ActiveLink href="/" >
+                                <a className="font-medium mr-8 text-black hover:text-yellow-500">Home</a>
 
-                            <Link href="#" >
-                                <a className="font-medium mr-8 text-gray-500 hover:text-yellow-500">Requests</a>
-                            </Link>
+                            </ActiveLink>
+                            <ActiveLink href="/contribute" >
+                                <a className="font-medium mr-8 text-black hover:text-yellow-500">Contribute</a>
+                            </ActiveLink>
+                            {account.isAdmin &&
+                                <ActiveLink href="/createRequest" >
+                                    <a className="font-medium mr-8 text-black hover:text-yellow-500">Create request</a>
+                                </ActiveLink>
+                            }
 
-                            <Link href="#" >
-                                <a className="font-medium mr-8 text-gray-500 hover:text-yellow-500">Contract funding info</a>
-                            </Link>
+
+                            <ActiveLink href="/createdRequests" >
+                                <a className="font-medium mr-8 text-black hover:text-yellow-500">Created requests</a>
+                            </ActiveLink>
 
                         </div>
                         <div>
-                            <Link href="#" >
+                            <ActiveLink href="#" >
 
-                                <a className="font-medium mr-8 text-gray-500 hover:text-gray-900">Company</a>
+                                <a className="font-medium mr-8 text-black hover:text-gray-900">Company</a>
 
-                            </Link>
-                            <Link href="#" >
+                            </ActiveLink>
+                            <ActiveLink href="#" >
                                 <a className="font-medium mr-8 text-indigo-600 hover:text-indigo-500">Log in</a>
 
-                            </Link>
+                            </ActiveLink>
 
                             <div className="my-2">
                                 {isWeb3Loaded && account.data ?
-                                      <Button
-
-                                      variant="lightBlue"
-
-                                  >
-                                      {account.isAdmin ? "Hi there Admin" : "Hi there"}
-                                   
-
-                                  </Button> : isLoading ?
-
                                     <Button
 
-                                        onClick={connect}
-                                        disabled={true}
                                         variant="lightBlue"
 
                                     >
-                                        Loading
+                                        {account.isAdmin ? "Hi there Admin" : "Hi there"}
 
-                                    </Button> : isWeb3Loaded ?
+
+                                    </Button> : isLoading ?
 
                                         <Button
+
                                             onClick={connect}
-
+                                            disabled={true}
                                             variant="lightBlue"
 
                                         >
-                                            Connect wallet
+                                            Loading
 
-                                        </Button> :
+                                        </Button> : isWeb3Loaded ?
 
-                                        <Button
-                                            onClick={() => window.open("https://metamask.io/")}
-                                            variant="lightBlue"
+                                            <Button
+                                                onClick={connect}
 
-                                        >
-                                            Install  metamask
+                                                variant="lightBlue"
+
+                                            >
+                                                Connect wallet
+
+                                            </Button> :
+
+                                            <Button
+                                                onClick={() => window.open("https://metamask.io/")}
+                                                variant="lightBlue"
+
+                                            >
+                                                Install  metamask
 
 
-                                        </Button>
+                                            </Button>
 
                                 }
                             </div>
