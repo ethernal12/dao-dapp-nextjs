@@ -16,11 +16,12 @@ export default function Request({ account, contract, web3 }) {
 
 
     useEffect(() => {
-
-        const data = window.localStorage.getItem("raisedAmount")
+      
+        const data = window.sessionStorage.getItem("raisedAmount")
         setRaisedAmount(JSON.parse(data))
+        console.log(raisedAmount)
 
-    },[])
+    })
     
     
 
@@ -34,7 +35,7 @@ export default function Request({ account, contract, web3 }) {
         const recipient = e.target.elements[2].value;
         const value = e.target.elements[3].value;
         const valToWei = web3.utils.toWei(value, "ether");
-
+       
 
         await contract.methods
             .spendingRequest(title.toString(), description.toString(), recipient, valToWei)
@@ -54,10 +55,10 @@ export default function Request({ account, contract, web3 }) {
         return null
 
     return (
-
+    
 
         <div className="text-black flex bg-blue-500 mt-5 " style={{ width: "50%" }}>
-            <span>{raisedAmount}</span>
+           {raisedAmount}
             <form onSubmit={e => withToast(createSpendingRequest(e))} className="ml-3 my-2">
 
                 <label className="text-white" ><h1>Create spending request</h1> </label>

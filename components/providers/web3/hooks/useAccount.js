@@ -1,10 +1,16 @@
+
+
 import { useEffect } from "react"
 import useSWR from "swr"
 
 
 export const handler = (web3, provider) => () => {
-    const adminAddress = { "0xfe1c2c2a2442cfd8353078355c54d17d5c4d58b884f34180f661c170e1fde9ee": true } // hashed admin address
+    const ganacheAdmin = process.env.GANACHEISADMIN
+    const ropestenAdmin= process.env.ROPSTENISADMIN
+  
 
+    const adminAddress = { [ganacheAdmin] : true } // hashed admin address (use keccak-256 and hex address without 0x to get the hash)
+   
     const { data, mutate, ...restRes } = useSWR(() =>
         web3 ? "web3/accounts" : null ,
         async () => {

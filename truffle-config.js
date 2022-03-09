@@ -26,7 +26,7 @@ module.exports = {
       skipDryRun: true,
       from:"",
       timeoutblocks: 200,
-      conformations:2
+      
      
   }
 

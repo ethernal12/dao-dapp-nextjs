@@ -143,6 +143,7 @@ contract CrowdFunding {
 
         (bool success, ) = request.recipient.call{value: request.value}("");
         require(success, "Transfer to owner of the course failed");
+        raisedAmount -= request.value;
     }
 
     function transferOwnership(address _newAdmin) external onlyAdmin {
@@ -152,7 +153,6 @@ contract CrowdFunding {
     //---------------------------------------------helper functions------------------------------------
 
     function tokenHolderAddress() public view returns(address){
-
 
         return address(daot);
     }
@@ -184,6 +184,10 @@ contract CrowdFunding {
 
     function hasVoted(address _voter) external view returns (bool) {
         return voted[_voter];
+    }
+    function hasVotedForRequest(uint _id) external view returns(bool){
+        Request storage r = spendingRequests[_id];
+        return r.voters[msg.sender];
     }
 
     function votedForSpendingRequest(uint256 _id) external view returns (bool) {

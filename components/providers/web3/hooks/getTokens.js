@@ -15,7 +15,7 @@ export const handler = (web3, provider, contract) => () => {
 
     useEffect(() => {
         window.ethereum &&
-            window.ethereum.on("accountsChanged", accounts => { setAccount(accounts[0]) })
+        window.ethereum.on("accountsChanged", accounts => { setAccount(accounts[0]) })
         console.log("account changed")
 
     }, [provider])
@@ -26,7 +26,7 @@ export const handler = (web3, provider, contract) => () => {
     useEffect(() => {
 
         const getTokens = async () => {
-          
+            console.log("get tokens")
             const tokens = await contract.methods.balanceOfDaotAddr(account)
                 .call()
             const distributedTokens = await contract.methods.totalDestributedTokens()
@@ -34,15 +34,15 @@ export const handler = (web3, provider, contract) => () => {
             const raisedAmount = await contract.methods.raisedAmount()
                 .call()
 
-            window.localStorage.setItem("tokenBalance", JSON.stringify(tokens))
-            window.localStorage.setItem("totalDistributedTokens", JSON.stringify(distributedTokens))
-            window.localStorage.setItem("raisedAmount", JSON.stringify(raisedAmount))
+            window.sessionStorage.setItem("tokenBalance", JSON.stringify(tokens))
+            window.sessionStorage.setItem("totalDistributedTokens", JSON.stringify(distributedTokens))
+            window.sessionStorage.setItem("raisedAmount", JSON.stringify(raisedAmount))
             setTokenBalance(tokens)
         }
         account && network.isSupported && getTokens()
 
 
-    })
+    },[account])
 
 
 

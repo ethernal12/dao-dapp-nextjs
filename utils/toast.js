@@ -29,7 +29,7 @@ export const withToast = (promise) => {
                             {`Transaction tx was successful!`}
                             </p>
                                 <a 
-                                href = {`https://ropsten.etherscan.io/tx/${data.transactionHash}`}
+                                //href = {`https://ropsten.etherscan.io/tx/${data.transactionHash}`}
                                 target = "_blank"
                                 className='text-indigo-600 underline'
                                 

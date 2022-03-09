@@ -84,8 +84,6 @@ contract("voting DApp", accounts => {
             const tokenContractAddress = await cf.tokenHolderAddress()
             const tokenContractBalance = await cf.balanceOfDaotAddr(tokenContractAddress)
 
-
-
             assert.equal(Math.trunc(toBN(totalTokenSupply) * 2 / 3), toBN(tokenContractBalance).toString(), "Token balance of contract owner do not match")
 
 
@@ -94,8 +92,6 @@ contract("voting DApp", accounts => {
         it("admin should have 1/3 of minted tokens", async () => {
             const totalTokenSupply = await cf.totalSupply()
             const adminTokenBalance = await cf.balanceOfDaotAddr(admin)
-
-
 
             assert.equal(Math.trunc(toBN(totalTokenSupply) * 1 / 3), toBN(adminTokenBalance).toString(), "Token balance of admin do not match")
 
@@ -189,9 +185,6 @@ contract("voting DApp", accounts => {
 
         })
 
-
-
-
     })
     describe("Create spending request", () => {
 
@@ -235,10 +228,7 @@ contract("voting DApp", accounts => {
 
     describe("Spending request voting", () => {
 
-
-        
-
-        
+  
         it("only token holders can vote for spending request", async () => {
             await expectRevert(
                 cf.vote(spendingRequest1, { from: recipient }),
@@ -367,6 +357,8 @@ contract("voting DApp", accounts => {
             const recipientBalanceAfter = await getBalance(recipient)
 
             assert.equal(toBN(recipientBalanceBefore).add(toBN(spendingRequestValue)).toString(), recipientBalanceAfter)
+
+            //test aditionaly that the value trasfered to recipient gets subtracted from raised amout, because that money was spent
         })
 
 
@@ -399,8 +391,6 @@ contract("voting DApp", accounts => {
 
             ))
 
-
-
         })
 
 
@@ -415,10 +405,6 @@ contract("voting DApp", accounts => {
 
         })
 
-
-
-
-
     })
 
     describe("Can get a refund", () => {
@@ -430,8 +416,6 @@ contract("voting DApp", accounts => {
 
             //contribute to contract
             await cf2.contribute({ from: voter1, value: minCon })
-
-
 
         })
 
@@ -451,9 +435,6 @@ contract("voting DApp", accounts => {
 
             assert.equal(toBN(balancesBefore).add(toBN(minCon)).sub(gasUsed).toString(), balancesAfter, "After refund the balances do not match!")
 
-
-
-
         })
 
 
@@ -467,14 +448,12 @@ contract("voting DApp", accounts => {
             cf2 = await CF.new(deadline, goal, minCon)
 
 
-
         })
 
         it("only admin should transfer ownership ", async () => {
             await expectRevert(cf2.transferOwnership(admin2, { from: voter1 }),
                 "Only admin!"
             )
-
 
 
         })

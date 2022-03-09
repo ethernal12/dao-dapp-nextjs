@@ -6,7 +6,7 @@ import { toast } from 'react-toastify';
 import { withToast } from "@utils/toast";
 
 
-export default function Contribute({ account, isAdmin, contract, web3 }) {
+export default function Contribute({ account, isAdmin, contract, web3, provider }) {
     const { hooks } = useWeb3()
 
     const { tokens } = hooks.getTokens()
@@ -14,7 +14,7 @@ export default function Contribute({ account, isAdmin, contract, web3 }) {
     
     const { network } = hooks.useNetwork()
 
-    console.log(isAdmin)
+    
 
     const fund = async (e) => {
         e.preventDefault()
@@ -35,8 +35,8 @@ export default function Contribute({ account, isAdmin, contract, web3 }) {
             const distributedTokens = await contract.methods.totalDestributedTokens()
                 .call()
 
-            window.localStorage.setItem("tokenBalance", JSON.stringify(tokens))
-            window.localStorage.setItem("totalDistributedTokens", JSON.stringify(distributedTokens))
+            window.sessionStorage.setItem("tokenBalance", JSON.stringify(tokens))
+            window.sessionStorage.setItem("totalDistributedTokens", JSON.stringify(distributedTokens))
             window.location.reload()
 
         }
@@ -44,11 +44,13 @@ export default function Contribute({ account, isAdmin, contract, web3 }) {
 
     }
 
+
     useEffect(() => {
-        const data = window.localStorage.getItem("tokenBalance")
+     
+        const data = window.sessionStorage.getItem("tokenBalance")
         setTokenBalance(JSON.parse(data))
 
-    }, [tokenBalance])
+    })
 
     if (!network.isSupported)
         return null

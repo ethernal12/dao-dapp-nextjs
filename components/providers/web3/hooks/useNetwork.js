@@ -16,11 +16,12 @@ export const handler = (web3, provider) => () => {
 
     }
 
-    const targetNetwork = NETWORKS[process.env.NEXT_PUBLIC_TARGET_CHAIN_ID]
-  
+    const targetNetwork = NETWORKS[process.env.GANACHE_CHAIN_ID]
+    
     const { mutate,data, ...rest } = useSWR(() =>
         web3 ? "web3/network" : null,
         async () => {
+           
             const chainId = await web3.eth.getChainId()
             return NETWORKS[chainId]
         }

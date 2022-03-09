@@ -6,7 +6,7 @@ import { Breadcrumbs, EthStats, Header, Hero, Fund } from "@components/UI/common
 
 
 export default function Contribute() {
-    const { web3, isLoading, contract } = useWeb3()
+    const { web3, isLoading, contract, provider } = useWeb3()
     const { hooks } = useWeb3()
     const { network, isSupported } = hooks.useNetwork()
     const { account } = hooks.useAccount()
@@ -19,7 +19,7 @@ export default function Contribute() {
 
             <Fund
 
-
+                provider = {provider}
                 targetNetwork={network.targetNetwork}
                 network={network.data}
                 account={account.data}
