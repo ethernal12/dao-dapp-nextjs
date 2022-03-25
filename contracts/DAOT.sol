@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.7;
 
-import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Votes.sol";
+import "@openzeppelin/contracts/token/ERC20/ERC20dwdw.sol";
 
     contract DAOT is ERC20{
 
@@ -14,7 +14,7 @@ import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Votes.sol";
             _transfer(owner, _admin, _totalSupply * 10 ** 18 / 3); // transfer 1/3 of minted tokens to admin
         }
 
-          function transferFrom(address owner, address _to, uint _amount) public override returns(bool){
+        function transferFrom(address owner, address _to, uint _amount) public override returns(bool){
             owner = address(this);
              //_spendAllowance(owner, _to, _amount); // does not find teh function to set allowance to = 0 ?
             _transfer(owner, _to, _amount * 10 ** 18);
@@ -29,10 +29,5 @@ import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Votes.sol";
             return true;
         }
 
-      
-
-
-
-
-
+ 
 }

@@ -9,11 +9,12 @@ export const handler = (web3, provider, contract) => () => {
     const [raisedAmount, setRaisedAmount] = useState(undefined)
     const [totalTokensDistributed, setTotalTokensDistributed] = useState(undefined)
 
+
     const id = null
     const { hooks } = useWeb3()
 
     const { account } = hooks.useAccount()
-    const {network} = hooks.useNetwork()
+    const { network } = hooks.useNetwork()
 
 
     useEffect(() => {
@@ -34,6 +35,8 @@ export const handler = (web3, provider, contract) => () => {
             const spendingRequest = []
             const res = null
             const vote = undefined
+            const goal = null
+
             for (let i = 0; i < id; i++) {
 
 
@@ -53,8 +56,6 @@ export const handler = (web3, provider, contract) => () => {
 
             }
             setTable(spendingRequest)
-
-
 
             try {
                 vote = await contract.methods.hasVoted(account.data)
@@ -85,29 +86,19 @@ export const handler = (web3, provider, contract) => () => {
 
 
             } catch (error) {
-                console.log(error + "setGoal")
+                console.log(error + "setContractBalance")
             }
             setRaisedAmount(contractBalance)
 
 
-            const distrubitedTokens = 0
-            try {
-                contractBalance = await contract.methods.totalDestributedTokens()
-                    .call()
-
-
-            } catch (error) {
-                console.log(error + "distrubitedTokens")
-            }
-            setTotalTokensDistributed(distrubitedTokens)
-
+           
 
 
         }
         network.isSupported && getData()
 
 
-    }, [contract])
+    }, [])
 
     return {
         data: {

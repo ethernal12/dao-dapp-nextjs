@@ -25,13 +25,13 @@ contract CrowdFunding {
         address payable recipient;
         bool completed;
         uint256 noOfVotes;
-        mapping(address => bool) voters;
+    
     }
 
     mapping(address => uint256) public contributors;
     mapping(uint256 => Request) public spendingRequests;
-    mapping(address => bool) public voted;
     mapping(address => uint256) public contributorsVoteWeight;
+    mapping(uint => mapping (address => bool)) public voted;
 
     constructor(
         uint256 _deadline,
@@ -112,20 +112,17 @@ contract CrowdFunding {
     }
 
     function vote(uint256 _id) external tokenOwnerRights {
-        Request storage request = spendingRequests[_id];
+        Request storage request = spendingRequests[id];   
         require(msg.sender != admin, "Admin cannot cast a vote! ");
-        require(
-            request.voters[msg.sender] == false,
-            "You have allready voted for this spending request!"
-        );
+        require(voted[_id][msg.sender] == false, "You have allready voted for this spending request!");
         require(request.completed != true ,"Cannot vote, spending request completed!");
 
         uint256 voteWeight = _balanceOfDaotAddr(msg.sender);
         request.noOfVotes += voteWeight;
 
-        request.voters[msg.sender] = true;
+        voted[_id][msg.sender] = true;
 
-        voted[msg.sender] = true;
+    
     }
 
     function transferRequestFunds(uint256 _id)
@@ -182,19 +179,11 @@ contract CrowdFunding {
         return daot.allowance(_owner, _spender);
     }
 
-    function hasVoted(address _voter) external view returns (bool) {
-        return voted[_voter];
-    }
-    function hasVotedForRequest(uint _id) external view returns(bool){
-        Request storage r = spendingRequests[_id];
-        return r.voters[msg.sender];
-    }
+   function votedForSpendingRequest(uint _id) external view returns(bool){
 
-    function votedForSpendingRequest(uint256 _id) external view returns (bool) {
-        Request storage r = spendingRequests[_id];
-
-        return r.voters[msg.sender];
-    }
+       return voted[_id][msg.sender];
+   }
+  
 
     function deadline_() external view returns (bool) {
         bool isDeadline = false;
