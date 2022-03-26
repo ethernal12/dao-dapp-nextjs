@@ -3,7 +3,7 @@
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 - Admin deployes the contract with deadline, funding goal and minimun contribution parameters. At creation of the contract the Admin receives 1/3 of the token supply to their account and the rest is transfered to the DAO contract.
 - Everybody can contribute to the crowdfunding contract as long as the deadline date has not passed. If the funding goal has not been reached as the deadline date expires,      contributors can ask for a full refund.
-- After contributing to the contract, contributor will receive DAOT tokens to their account. Conversion rate: 00000000000000 wei = 0,00001 eth/0,03USD  = 1000 TOKEN
+- After contributing to the contract, contributor will receive DAOT tokens to their account. Conversion rate: 100000000000000 wei = 0,00001 eth/0,03USD  = 1000 TOKEN
 - Admin can create spending request proposals at any time.
 - Only contributors who have DAOT in their account can vote for proposals, they can vote only one time per proposal, their vote weight is proportional to the amount of tokens they hold.
 - Only admin can finalize the proposals if it has sufficient #votes(> 1/2) and the funding goal has been reached.
